@@ -143,6 +143,7 @@ def procesar_entrada_vlsm(ip_base_con_mascara, texto_hosts):
 
     arbol_str = salida.getvalue()
     # aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+        # Calcular los bits necesarios para cada subred
     ListaDeBits = BitsParaCadaRed(subredes)
     for i, valor in enumerate(ListaDeBits):
         print(f"Red {valor['nombre']}:")
@@ -151,18 +152,31 @@ def procesar_entrada_vlsm(ip_base_con_mascara, texto_hosts):
         print(f"  Número de hosts máximos: {valor['numeroDeHostsMaximos']}")
         print(f"  Máscara de subred: /{valor['mascara']}")
         print()
+
+    # Convertimos la IP base a entero para calcular las subredes
     ip_actual = IpEnEntero(IpBase)
 
+    # Aquí es donde agregamos la validación del espacio disponible para cada subred
     for subred in ListaDeBits:
+        # Verificamos si la máscara y los bits son suficientes para alojar los hosts
         tamanio = 2 ** subred["bitsNecesarios"]
+        
+        # Validamos si el tamaño de la subred cabe dentro del espacio restante
+        if ip_actual + tamanio <= 2**32:  # Esto asegura que no excedamos las direcciones
+            # Asignamos la dirección IP a la subred
+            subred["ipRed"] = enteroAIp(ip_actual)
+            subred["ipPrimera"] = enteroAIp(ip_actual + 1)
+            subred["ipUltima"] = enteroAIp(ip_actual + tamanio - 2)
+            subred["ipBroadcast"] = enteroAIp(ip_actual + tamanio - 1)
 
-        subred["ipRed"] = enteroAIp(ip_actual)
-        subred["ipPrimera"] = enteroAIp(ip_actual + 1)
-        subred["ipUltima"] = enteroAIp(ip_actual + tamanio - 2)
-        subred["ipBroadcast"] = enteroAIp(ip_actual + tamanio - 1)
-
-        ip_actual += tamanio  # Avanzamos para la siguiente subred
-    for i,subred in enumerate (ListaDeBits):
+            # Avanzamos a la siguiente subred
+            ip_actual += tamanio  # Incrementamos el puntero para la siguiente subred
+        else:
+            # Si no cabe, dejamos la subred como "No asignada"
+            subred["ipRed"] = subred["ipPrimera"] = subred["ipUltima"] = subred["ipBroadcast"] = "No asignado"
+            print(f"  {subred['nombre']} no puede ser asignada por falta de espacio.")
+        
+        # Mostramos la información de cada subred
         print(f"Subred {subred['nombre']}:")
         print(f"  IP de red: {subred['ipRed']}")
         print(f"  Primera IP: {subred['ipPrimera']}")
@@ -170,6 +184,7 @@ def procesar_entrada_vlsm(ip_base_con_mascara, texto_hosts):
         print(f"  IP de broadcast: {subred['ipBroadcast']}")
         print(f"  Máscara de subred: /{subred['mascara']}")
         print()
+
 
     return {
         "arbol": arbol_str,
