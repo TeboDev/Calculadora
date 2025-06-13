@@ -185,7 +185,11 @@ def procesar_entrada_vlsm(ip_base_con_mascara, texto_hosts):
             ip_actual += tamanio  # Incrementamos el puntero para la siguiente subred
         else:
             # Si no cabe, marcamos la subred como "No asignada"
-            subred["ipRed"] = subred["ipPrimera"] = subred["ipUltima"] = subred["ipBroadcast"] = "No asignado"
+            subred["ipRed"] = "No"
+            subred["ipPrimera"] = "alcanza"
+            subred["ipUltima"] = "la"
+            subred["ipBroadcast"] = "red"
+            subred["mascara"] = "papi"
             print(f"  {subred['nombre']} no puede ser asignada por falta de espacio.")
 
         # Mostramos la información de cada subred
