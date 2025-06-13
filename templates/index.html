@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Calculadora VLSM</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 40px;
+        background-color: #f9f9f9;
+      }
+
+      h1 {
+        color: #2266cc;
+      }
+
+      label {
+        font-weight: bold;
+      }
+
+      input[type="text"] {
+        width: 400px;
+        padding: 5px;
+      }
+
+      button {
+        padding: 6px 12px;
+        background-color: #2266cc;
+        color: white;
+        border: none;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background-color: #1a4ea8;
+      }
+
+      table {
+        border-collapse: collapse;
+        margin-top: 10px;
+        width: 100%;
+      }
+
+      td,
+      th {
+        padding: 8px;
+        border: 1px solid black;
+        text-align: center;
+      }
+
+      pre {
+        background-color: #eee;
+        padding: 10px;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Calculadora VLSM</h1>
+
+    <form method="POST">
+      <label>IP base (ej: 192.168.0.0/24):</label><br />
+      <input type="text" name="ip" required /><br /><br />
+
+      <label>Subredes (ej: LAN-A:50, LAN-B:20, WAN-1:2):</label><br />
+      <input type="text" name="hosts" required /><br /><br />
+
+      <button type="submit">Calcular</button>
+    </form>
+
+    {% if resultado %}
+    <h2>Árbol de Subredes:</h2>
+    <pre>{{ resultado.arbol }}</pre>
+
+    <h2>Resumen:</h2>
+    <table>
+      <tr>
+        <th>Nombre</th>
+        <th>Red</th>
+        <th>Primera IP</th>
+        <th>Última IP</th>
+        <th>Broadcast</th>
+        <th>Máscara</th>
+      </tr>
+      {% for subred in resultado.subredes %}
+      <tr>
+        <td>{{ subred.nombre }}</td>
+        {% if 'ipRed' in subred %}
+        <td>{{ subred.ipRed }}</td>
+        <td>{{ subred.ipPrimera }}</td>
+        <td>{{ subred.ipUltima }}</td>
+        <td>{{ subred.ipBroadcast }}</td>
+        <td>/{{ subred.mascara }}</td>
+        {% else %}
+        <td colspan="5">No asignado</td>
+        {% endif %}
+      </tr>
+      {% endfor %}
+    </table>
+    {% endif %}
+  </body>
+</html>
