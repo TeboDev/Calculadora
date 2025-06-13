@@ -2,101 +2,211 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <title>Calculadora VLSM</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calculadora VLSM PRO</title>
     <style>
+      * {
+        box-sizing: border-box;
+      }
+
       body {
-        font-family: Arial, sans-serif;
-        margin: 40px;
-        background-color: #f9f9f9;
+        margin: 0;
+        font-family: "Segoe UI", sans-serif;
+        background: linear-gradient(to right, #1e3c72, #2a5298);
+        color: #fff;
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 960px;
+        margin: auto;
+        padding: 40px 20px;
+        animation: fadeIn 1s ease;
       }
 
       h1 {
-        color: #2266cc;
+        text-align: center;
+        font-size: 2.8em;
+        margin-bottom: 40px;
+      }
+
+      form {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
       }
 
       label {
         font-weight: bold;
+        display: block;
+        margin: 15px 0 5px;
       }
 
       input[type="text"] {
-        width: 400px;
-        padding: 5px;
+        width: 100%;
+        padding: 10px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
       }
 
       button {
-        padding: 6px 12px;
-        background-color: #2266cc;
-        color: white;
+        margin-top: 20px;
+        padding: 12px 20px;
+        background: #00c6ff;
+        background: linear-gradient(to right, #0072ff, #00c6ff);
         border: none;
+        border-radius: 6px;
+        color: white;
+        font-weight: bold;
+        font-size: 16px;
+        width: 100%;
         cursor: pointer;
+        transition: 0.3s ease;
       }
 
       button:hover {
-        background-color: #1a4ea8;
+        background: linear-gradient(to right, #0052cc, #00aaff);
       }
 
-      table {
-        border-collapse: collapse;
-        margin-top: 10px;
-        width: 100%;
-      }
-
-      td,
-      th {
-        padding: 8px;
-        border: 1px solid black;
-        text-align: center;
+      h2 {
+        margin-top: 50px;
+        font-size: 1.8em;
+        color: #ffd700;
       }
 
       pre {
-        background-color: #eee;
-        padding: 10px;
+        background: rgba(0, 0, 0, 0.3);
+        padding: 15px;
+        border-left: 5px solid #00c6ff;
         white-space: pre-wrap;
+        font-family: "Courier New", monospace;
+        color: #fff;
+        border-radius: 6px;
+        overflow-x: auto;
+      }
+
+      table {
+        width: 100%;
+        margin-top: 20px;
+        border-collapse: collapse;
+        background-color: #fff;
+        color: #000;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      th {
+        background: #0072ff;
+        color: white;
+        padding: 10px;
+      }
+
+      td {
+        padding: 10px;
+        border-bottom: 1px solid #ccc;
+        text-align: center;
+      }
+
+      .not-assigned {
+        color: #999;
+        font-style: italic;
+      }
+
+      @media (max-width: 600px) {
+        h1 {
+          font-size: 2em;
+        }
+        button {
+          font-size: 14px;
+        }
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(15px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
     </style>
   </head>
   <body>
-    <h1>Calculadora VLSM</h1>
+    <div class="container">
+      <h1>Calculadora VLSM 🔍</h1>
 
-    <form method="POST">
-      <label>IP base (ej: 192.168.0.0/24):</label><br />
-      <input type="text" name="ip" required /><br /><br />
+      <form method="POST" onsubmit="return validarFormulario()">
+        <label>IP base (ej: 192.168.0.0/24):</label>
+        <input
+          type="text"
+          name="ip"
+          id="ip"
+          placeholder="192.168.0.0/24"
+          required
+        />
 
-      <label>Subredes (ej: LAN-A:50, LAN-B:20, WAN-1:2):</label><br />
-      <input type="text" name="hosts" required /><br /><br />
+        <label>Subredes (ej: LAN-A:50, LAN-B:20, WAN-1:2):</label>
+        <input
+          type="text"
+          name="hosts"
+          id="hosts"
+          placeholder="LAN-A:50, LAN-B:20, ..."
+          required
+        />
 
-      <button type="submit">Calcular</button>
-    </form>
+        <button type="submit">Calcular</button>
+      </form>
 
-    {% if resultado %}
-    <h2>Árbol de Subredes:</h2>
-    <pre>{{ resultado.arbol }}</pre>
+      {% if resultado %}
+      <h2>Árbol de Subredes:</h2>
+      <pre>{{ resultado.arbol }}</pre>
 
-    <h2>Resumen:</h2>
-    <table>
-      <tr>
-        <th>Nombre</th>
-        <th>Red</th>
-        <th>Primera IP</th>
-        <th>Última IP</th>
-        <th>Broadcast</th>
-        <th>Máscara</th>
-      </tr>
-      {% for subred in resultado.subredes %}
-      <tr>
-        <td>{{ subred.nombre }}</td>
-        {% if 'ipRed' in subred %}
-        <td>{{ subred.ipRed }}</td>
-        <td>{{ subred.ipPrimera }}</td>
-        <td>{{ subred.ipUltima }}</td>
-        <td>{{ subred.ipBroadcast }}</td>
-        <td>/{{ subred.mascara }}</td>
-        {% else %}
-        <td colspan="5">No asignado</td>
-        {% endif %}
-      </tr>
-      {% endfor %}
-    </table>
-    {% endif %}
+      <h2>Resumen:</h2>
+      <table>
+        <tr>
+          <th>Nombre</th>
+          <th>Red</th>
+          <th>Primera IP</th>
+          <th>Última IP</th>
+          <th>Broadcast</th>
+          <th>Máscara</th>
+        </tr>
+        {% for subred in resultado.subredes %}
+        <tr>
+          <td>{{ subred.nombre }}</td>
+          {% if 'ipRed' in subred %}
+          <td>{{ subred.ipRed }}</td>
+          <td>{{ subred.ipPrimera }}</td>
+          <td>{{ subred.ipUltima }}</td>
+          <td>{{ subred.ipBroadcast }}</td>
+          <td>/{{ subred.mascara }}</td>
+          {% else %}
+          <td colspan="5" class="not-assigned">No asignado</td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </table>
+      {% endif %}
+    </div>
+
+    <script>
+      function validarFormulario() {
+        const ip = document.getElementById("ip").value.trim();
+        const hosts = document.getElementById("hosts").value.trim();
+        if (!ip.includes("/")) {
+          alert("La IP debe incluir máscara, por ejemplo: 192.168.0.0/24");
+          return false;
+        }
+        if (!hosts.includes(":")) {
+          alert("Los hosts deben tener nombre y cantidad, como LAN-A:50");
+          return false;
+        }
+        return true;
+      }
+    </script>
   </body>
 </html>
