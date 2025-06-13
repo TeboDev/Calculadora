@@ -143,8 +143,9 @@ def procesar_entrada_vlsm(ip_base_con_mascara, texto_hosts):
 
     arbol_str = salida.getvalue()
     # aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-        # Calcular los bits necesarios para cada subred
     ListaDeBits = BitsParaCadaRed(subredes)
+
+    # Primero imprimimos los resultados de las subredes calculadas
     for i, valor in enumerate(ListaDeBits):
         print(f"Red {valor['nombre']}:")
         print(f"  Hosts requeridos: {valor['hostRequeridos']}")
@@ -153,16 +154,27 @@ def procesar_entrada_vlsm(ip_base_con_mascara, texto_hosts):
         print(f"  Máscara de subred: /{valor['mascara']}")
         print()
 
+    print("Construyendo el árbol de subredes...")
+    ip_base_entero = IpEnEntero(IpBase)
+
+    subredes_copia = copy.deepcopy(ListaDeBits)  # Mantener los datos originales
+    construir_arbol(ip_base_entero, Mascara, subredes_copia, 0)
+    print("Árbol de subredes construido.")
+    print("-----------------------------------"*5)
+
     # Convertimos la IP base a entero para calcular las subredes
     ip_actual = IpEnEntero(IpBase)
+    ip_actual2 = IpEnEntero(IpBase)
 
-    # Aquí es donde agregamos la validación del espacio disponible para cada subred
+    # Aquí va la validación del espacio disponible para cada subred
+    MascaraFff = 32 - Mascara
     for subred in ListaDeBits:
-        # Verificamos si la máscara y los bits son suficientes para alojar los hosts
         tamanio = 2 ** subred["bitsNecesarios"]
         
-        # Validamos si el tamaño de la subred cabe dentro del espacio restante
-        if ip_actual + tamanio <= 2**32:  # Esto asegura que no excedamos las direcciones
+        # Validamos si la subred cabe dentro del espacio restante de la red base
+        print(ip_actual +tamanio)
+        print(ip_actual2 + 2**MascaraFff)
+        if ip_actual + tamanio <= ip_actual2 + 2**MascaraFff:  # Verifica que no sobrepasemos el rango de IPs disponibles
             # Asignamos la dirección IP a la subred
             subred["ipRed"] = enteroAIp(ip_actual)
             subred["ipPrimera"] = enteroAIp(ip_actual + 1)
@@ -172,10 +184,10 @@ def procesar_entrada_vlsm(ip_base_con_mascara, texto_hosts):
             # Avanzamos a la siguiente subred
             ip_actual += tamanio  # Incrementamos el puntero para la siguiente subred
         else:
-            # Si no cabe, dejamos la subred como "No asignada"
+            # Si no cabe, marcamos la subred como "No asignada"
             subred["ipRed"] = subred["ipPrimera"] = subred["ipUltima"] = subred["ipBroadcast"] = "No asignado"
             print(f"  {subred['nombre']} no puede ser asignada por falta de espacio.")
-        
+
         # Mostramos la información de cada subred
         print(f"Subred {subred['nombre']}:")
         print(f"  IP de red: {subred['ipRed']}")
@@ -184,6 +196,7 @@ def procesar_entrada_vlsm(ip_base_con_mascara, texto_hosts):
         print(f"  IP de broadcast: {subred['ipBroadcast']}")
         print(f"  Máscara de subred: /{subred['mascara']}")
         print()
+
 
 
     return {
@@ -231,7 +244,14 @@ if __name__ == "__main__":
 
     print("Los hosts son: ", ListaDeHostsLimpia)
     
+
+   
+    
+
+    # Calcular los bits necesarios para cada subred
     ListaDeBits = BitsParaCadaRed(listadesubredes)
+
+    # Primero imprimimos los resultados de las subredes calculadas
     for i, valor in enumerate(ListaDeBits):
         print(f"Red {valor['nombre']}:")
         print(f"  Hosts requeridos: {valor['hostRequeridos']}")
@@ -243,22 +263,38 @@ if __name__ == "__main__":
     print("Construyendo el árbol de subredes...")
     ip_base_entero = IpEnEntero(IpBase)
 
-    subredes_copia = copy.deepcopy(ListaDeBits)  # importante para mantener los datos originales
+    subredes_copia = copy.deepcopy(ListaDeBits)  # Mantener los datos originales
     construir_arbol(ip_base_entero, Mascara, subredes_copia, 0)
     print("Árbol de subredes construido.")
-    print("-----------------------------------"* 5)
-    ip_actual = IpEnEntero(IpBase)
+    print("-----------------------------------"*5)
 
+    # Convertimos la IP base a entero para calcular las subredes
+    ip_actual = IpEnEntero(IpBase)
+    ip_actual2 = IpEnEntero(IpBase)
+
+    # Aquí va la validación del espacio disponible para cada subred
+    MascaraFff = 32 - Mascara
     for subred in ListaDeBits:
         tamanio = 2 ** subred["bitsNecesarios"]
+        
+        # Validamos si la subred cabe dentro del espacio restante de la red base
+        print(ip_actual +tamanio)
+        print(ip_actual2 + 2**MascaraFff)
+        if ip_actual + tamanio <= ip_actual2 + 2**MascaraFff:  # Verifica que no sobrepasemos el rango de IPs disponibles
+            # Asignamos la dirección IP a la subred
+            subred["ipRed"] = enteroAIp(ip_actual)
+            subred["ipPrimera"] = enteroAIp(ip_actual + 1)
+            subred["ipUltima"] = enteroAIp(ip_actual + tamanio - 2)
+            subred["ipBroadcast"] = enteroAIp(ip_actual + tamanio - 1)
 
-        subred["ipRed"] = enteroAIp(ip_actual)
-        subred["ipPrimera"] = enteroAIp(ip_actual + 1)
-        subred["ipUltima"] = enteroAIp(ip_actual + tamanio - 2)
-        subred["ipBroadcast"] = enteroAIp(ip_actual + tamanio - 1)
+            # Avanzamos a la siguiente subred
+            ip_actual += tamanio  # Incrementamos el puntero para la siguiente subred
+        else:
+            # Si no cabe, marcamos la subred como "No asignada"
+            subred["ipRed"] = subred["ipPrimera"] = subred["ipUltima"] = subred["ipBroadcast"] = "No asignado"
+            print(f"  {subred['nombre']} no puede ser asignada por falta de espacio.")
 
-        ip_actual += tamanio  # Avanzamos para la siguiente subred
-    for i,subred in enumerate (ListaDeBits):
+        # Mostramos la información de cada subred
         print(f"Subred {subred['nombre']}:")
         print(f"  IP de red: {subred['ipRed']}")
         print(f"  Primera IP: {subred['ipPrimera']}")
