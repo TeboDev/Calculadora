@@ -82,8 +82,13 @@ def construir_arbol(ip_entero, mascara_actual, subredes_por_asignar, nivel):
 
 
 def procesar_entrada_vlsm(ip_base_con_mascara, texto_hosts):
-    IpBase = ip_base_con_mascara.split("/")[0]
+    IpBase1 = ip_base_con_mascara.split("/")[0]
+    
     Mascara = int(ip_base_con_mascara.split("/")[1])
+    ip_enterillo = IpEnEntero(IpBase1)
+    mascara_bin = (2**Mascara - 1) << (32 - Mascara)
+    dirRed = ip_enterillo & mascara_bin
+    IpBase = enteroAIp(dirRed)
 
     # Procesar entrada tipo: LAN-A:50, LAN-B:30, WAN-1:2
     lista_raw = texto_hosts.split(",")
@@ -223,7 +228,11 @@ if __name__ == "__main__":
 
     IpCompleta = input("Ingrese la Ip de esta forma, de esta no de otra forma EJEMPLO (192.168.0.0/24)  Ip: ")
     Mascara = int(IpCompleta.split("/")[1])
-    IpBase = IpCompleta.split("/")[0]
+    ip_enterillo = IpEnEntero(IpCompleta.split("/")[0])
+    mascara_bin = (2**Mascara - 1) << (32 - Mascara)
+    dirRed = ip_enterillo & mascara_bin
+    IpBase = enteroAIp(dirRed)
+    print("IP Base:", IpBase)
 
     print("La IP en binario es: ", IpEnBinario(IpBase))
     print("La mascara es: ", Mascara)
