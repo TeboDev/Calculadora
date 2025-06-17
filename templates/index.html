@@ -190,6 +190,20 @@
         </tr>
         {% endfor %}
       </table>
+
+       <br>
+
+      <!-- Botones para descargar PDF -->
+      <form action="{{ url_for('generar_pdf_arbol') }}" method="POST">
+        <button type="submit">Descargar Árbol de Subredes en PDF</button>
+      </form>
+
+      <form action="{{ url_for('generar_pdf_resumen') }}" method="POST">
+        <button type="submit">Descargar Resumen de Subredes en PDF</button>
+      </form>
+
+
+
       {% endif %}
     </div>
 
