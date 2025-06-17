@@ -26,9 +26,8 @@ def generar_pdf_arbol():
         buffer,
         mimetype='application/pdf',
         as_attachment=True,
-        attachment_filename='arbol_subredes.pdf',
-        cache_timeout=0
-    )
+        download_name='arbol_subredes.pdf'
+            )
 
 @app.route('/generar_pdf_resumen', methods=['POST'])
 def generar_pdf_resumen():
@@ -43,8 +42,7 @@ def generar_pdf_resumen():
         buffer,
         mimetype='application/pdf',
         as_attachment=True,
-        attachment_filename='resumen_subredes.pdf',
-        cache_timeout=0
+        download_name='resumen_subredes.pdf'
     )
 
 if __name__ == '__main__':
