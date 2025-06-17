@@ -14,19 +14,22 @@ def generar_pdf_arbol_bytes(arbol_str: str) -> BytesIO:
     pdf.set_font('Courier', '', 10)
     pdf.ln(5)
 
-    for linea in arbol_str.splitlines():
+    # Reemplazamos la flecha Unicode por ASCII
+    clean_arbol = arbol_str.replace('→', '->')
+
+    for linea in clean_arbol.splitlines():
+        # fpdf2 output() no admite BytesIO directamente, así que luego lo capturamos
         pdf.cell(0, 6, linea, ln=True)
 
-    buffer = BytesIO()
-    pdf.output(buffer)
+    # Obtenemos el PDF como string (latin-1) y lo escribimos en el buffer
+    pdf_bytes = pdf.output(dest='S').encode('latin-1', 'replace')
+    buffer = BytesIO(pdf_bytes)
     buffer.seek(0)
     return buffer
 
 def generar_pdf_resumen_bytes(subredes: list[dict]) -> BytesIO:
     """
     Genera un PDF con el resumen de subredes (tabla) y lo devuelve como BytesIO.
-    Cada elemento de `subredes` debe ser un dict con keys:
-    'nombre', 'ipRed', 'ipPrimera', 'ipUltima', 'ipBroadcast', 'mascara'
     """
     pdf = FPDF()
     pdf.add_page()
@@ -34,7 +37,6 @@ def generar_pdf_resumen_bytes(subredes: list[dict]) -> BytesIO:
     pdf.cell(0, 10, 'Resumen de Subredes', ln=True, align='C')
     pdf.ln(5)
 
-    # Encabezados
     headers = ['Nombre','Red','Primera IP','Última IP','Broadcast','Máscara']
     col_w = pdf.w / len(headers) - 10
     pdf.set_font('Arial', 'B', 10)
@@ -42,7 +44,6 @@ def generar_pdf_resumen_bytes(subredes: list[dict]) -> BytesIO:
         pdf.cell(col_w, 8, h, border=1, ln=0, align='C')
     pdf.ln()
 
-    # Filas
     pdf.set_font('Arial', '', 10)
     for s in subredes:
         pdf.cell(col_w, 8, s['nombre'], border=1)
@@ -56,7 +57,8 @@ def generar_pdf_resumen_bytes(subredes: list[dict]) -> BytesIO:
             pdf.cell(col_w*5, 8, 'No asignado', border=1, align='C')
         pdf.ln()
 
-    buffer = BytesIO()
-    pdf.output(buffer)
+    # Igual, usamos dest='S' para capturar el PDF
+    pdf_bytes = pdf.output(dest='S').encode('latin-1', 'replace')
+    buffer = BytesIO(pdf_bytes)
     buffer.seek(0)
     return buffer
