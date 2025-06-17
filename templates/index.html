@@ -191,15 +191,18 @@
         {% endfor %}
       </table>
 
-       <br>
-
-      <!-- Botones para descargar PDF -->
-      <form action="{{ url_for('generar_pdf_arbol') }}" method="POST">
-        <button type="submit">Descargar Árbol de Subredes en PDF</button>
+       <!-- Botón PDF Árbol -->
+      <form method="POST" action="{{ url_for('generar_pdf_arbol') }}">
+        <input type="hidden" name="ip" value="{{ request.form.ip }}">
+        <input type="hidden" name="hosts" value="{{ request.form.hosts }}">
+        <button type="submit">Descargar Árbol (PDF)</button>
       </form>
 
-      <form action="{{ url_for('generar_pdf_resumen') }}" method="POST">
-        <button type="submit">Descargar Resumen de Subredes en PDF</button>
+      <!-- Botón PDF Resumen -->
+      <form method="POST" action="{{ url_for('generar_pdf_resumen') }}">
+        <input type="hidden" name="ip" value="{{ request.form.ip }}">
+        <input type="hidden" name="hosts" value="{{ request.form.hosts }}">
+        <button type="submit">Descargar Resumen (PDF)</button>
       </form>
 
 

@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request
 from fpdf import FPDF
+from io import BytesIO
 from calculos import procesar_entrada_vlsm  # función que vas a definir
 
 app = Flask(__name__)
@@ -15,48 +16,70 @@ def index():
 
 @app.route('/generar_pdf_arbol', methods=['POST'])
 def generar_pdf_arbol():
-    # Obtener los datos del árbol (ya calculados)
-    arbol_str = request.form.get('arbol')  # Aquí debes extraer el árbol de alguna variable global o sesión
+    ip = request.form['ip']
+    hosts = request.form['hosts']
+    resultado = procesar_entrada_vlsm(ip, hosts)
 
-    # Crear el objeto PDF
     pdf = FPDF()
     pdf.add_page()
-    pdf.set_font('Arial', 'B', 12)
-    pdf.cell(200, 10, txt="Árbol de Subredes", ln=True, align='C')
+    pdf.set_font('Arial','B',14)
+    pdf.cell(0,10,'Árbol de Subredes',ln=True,align='C')
+    pdf.set_font('Courier','',10)
+    pdf.ln(5)
 
-    # Insertar el contenido del árbol
-    pdf.multi_cell(0, 10, arbol_str)
+    for linea in resultado['arbol'].splitlines():
+        pdf.cell(0,6,linea,ln=True)
 
-    # Guardar el PDF en memoria
-    pdf_output = BytesIO()
-    pdf.output(pdf_output)
-    pdf_output.seek(0)
+    mem = BytesIO()
+    pdf.output(mem)
+    mem.seek(0)
+    return send_file(mem,
+                     as_attachment=True,
+                     download_name='arbol_subredes.pdf',
+                     mimetype='application/pdf')
 
-    # Devolver el PDF como descarga
-    return send_file(pdf_output, as_attachment=True, download_name="arbol_subredes.pdf", mimetype="application/pdf")
-
-# Ruta para generar el PDF del resumen
 @app.route('/generar_pdf_resumen', methods=['POST'])
 def generar_pdf_resumen():
-    # Obtener los datos del resumen (ya calculados)
-    resumen_str = request.form.get('resumen')  # Similar, extrae el resumen de alguna variable global o sesión
+    ip = request.form['ip']
+    hosts = request.form['hosts']
+    resultado = procesar_entrada_vlsm(ip, hosts)
 
-    # Crear el objeto PDF
     pdf = FPDF()
     pdf.add_page()
-    pdf.set_font('Arial', 'B', 12)
-    pdf.cell(200, 10, txt="Resumen de Subredes", ln=True, align='C')
+    pdf.set_font('Arial','B',14)
+    pdf.cell(0,10,'Resumen de Subredes',ln=True,align='C')
+    pdf.ln(5)
+    pdf.set_font('Arial','B',10)
 
-    # Insertar el contenido del resumen
-    pdf.multi_cell(0, 10, resumen_str)
+    # Encabezados
+    headers = ['Nombre','Red','Primera IP','Última IP','Broadcast','Máscara']
+    col_width = pdf.w / len(headers) - 10
+    for h in headers:
+        pdf.cell(col_width,8,h,1,0,'C')
+    pdf.ln()
 
-    # Guardar el PDF en memoria
-    pdf_output = BytesIO()
-    pdf.output(pdf_output)
-    pdf_output.seek(0)
+    # Filas
+    pdf.set_font('Arial','',10)
+    for s in resultado['subredes']:
+        pdf.cell(col_width,8,s['nombre'],1)
+        if s.get('ipRed') != 'No asignado':
+            pdf.cell(col_width,8,s['ipRed'],1)
+            pdf.cell(col_width,8,s['ipPrimera'],1)
+            pdf.cell(col_width,8,s['ipUltima'],1)
+            pdf.cell(col_width,8,s['ipBroadcast'],1)
+            pdf.cell(col_width,8,'/'+str(s['mascara']),1)
+        else:
+            pdf.cell(col_width*5,8,'No asignado',1,0,'C')
+        pdf.ln()
 
-    # Devolver el PDF como descarga
-    return send_file(pdf_output, as_attachment=True, download_name="resumen_subredes.pdf", mimetype="application/pdf")
+    mem = BytesIO()
+    pdf.output(mem)
+    mem.seek(0)
+    return send_file(mem,
+                     as_attachment=True,
+                     download_name='resumen_subredes.pdf',
+                     mimetype='application/pdf')
+
 
 if __name__ == '__main__':
     app.run()
